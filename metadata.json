@@ -1,0 +1,6 @@
+{
+  "name": "হিসাব (HISAB) - ব্যক্তিগত হিসাব ও দেনা-পাওনা",
+  "description": "আয়, ব্যয়, ক্যাশ, ব্যাংক, ডিপিএস, সম্পদ এবং দেনা-পাওনার হিসাব রাখার সহজ ও স্বয়ংসম্পূর্ণ অ্যাপ।",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
