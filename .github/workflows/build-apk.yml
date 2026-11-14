@@ -11,17 +11,20 @@ on:
       - master
   workflow_dispatch:
 
+permissions:
+  contents: write   # keystore প্রথমবার repo-তে সেভ করার জন্য
+
 jobs:
   build-apk:
-    name: Build Debug APK
-    runs-on: ubuntu-latest
+    name: Build Release APK
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
@@ -39,26 +42,38 @@ jobs:
         with:
           gradle-version: "9.3.1"
 
-      - name: Ensure debug.keystore exists
+      # স্থায়ী signing key: প্রথম বিল্ডে একবার তৈরি হয়ে repo-তে সেভ হয়,
+      # পরের সব বিল্ডে একই key ব্যবহার হয় (তাই APK আপডেট হিসেবে ইনস্টল হবে)
+      - name: Ensure release.keystore exists
         run: |
-          if [ ! -f debug.keystore ]; then
+          if [ ! -f release.keystore ]; then
             keytool -genkeypair -v \
-              -keystore debug.keystore \
-              -storepass android \
-              -alias androiddebugkey \
-              -keypass android \
+              -keystore release.keystore \
+              -storepass hisab123456 \
+              -alias hisabkey \
+              -keypass hisab123456 \
               -keyalg RSA \
               -keysize 2048 \
               -validity 10000 \
-              -dname "CN=Android Debug,O=Android,C=US"
+              -dname "CN=Hisab,O=Hisab,C=BD"
+            echo "NEW_KEYSTORE=true" >> $GITHUB_ENV
           fi
 
-      - name: Build Debug APK
-        run: gradle assembleDebug --no-daemon
+      - name: Save keystore to repository (first time only)
+        if: env.NEW_KEYSTORE == 'true' && github.event_name != 'pull_request'
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -f release.keystore
+          git commit -m "Add release keystore [skip ci]"
+          git push
+
+      - name: Build Release APK
+        run: gradle assembleRelease --no-daemon
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: hisab-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: hisab-release-apk
+          path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
