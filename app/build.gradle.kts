@@ -13,8 +13,11 @@ android {
         applicationId = "com.aistudio.hisab.ledger"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+
+        // GitHub Actions বিল্ড নম্বর অনুযায়ী অটো: 1.1, 1.2, 1.3 ...
+        val build = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInt()
+        versionCode = build
+        versionName = "1.$build"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -27,16 +30,18 @@ android {
             keyPassword = "android"
         }
         create("release") {
-            storeFile = file("${rootDir}/debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
+            // workflow প্রথম বিল্ডে এটা তৈরি করে repo-তে সেভ করে
+            storeFile = file("${rootDir}/release.keystore")
+            storePassword = "hisab123456"
+            keyAlias = "hisabkey"
+            keyPassword = "hisab123456"
         }
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true      // R8: কোড ছোট ও obfuscate
+            isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
