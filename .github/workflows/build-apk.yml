@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write   # keystore প্রথমবার repo-তে সেভ করার জন্য
+  contents: write   # keystore সেভ ও Release তৈরির জন্য
 
 jobs:
   build-apk:
@@ -72,3 +72,15 @@ jobs:
           name: hisab-release-apk
           path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VER="1.${{ github.run_number }}"
+          cp app/build/outputs/apk/release/app-release.apk "hisab-v${VER}.apk"
+          gh release create "v${VER}" "hisab-v${VER}.apk" \
+            --target "${{ github.sha }}" \
+            --title "v${VER}" \
+            --notes "Release build ${VER}"
