@@ -32,18 +32,13 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          packages: |
-            platform-tools
-            platforms;android-36
-            build-tools;36.0.0
+          packages: "platform-tools platforms;android-36 build-tools;36.0.0"
 
       - name: Set up Gradle 9.3.1
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "9.3.1"
 
-      # স্থায়ী signing key: প্রথম বিল্ডে একবার তৈরি হয়ে repo-তে সেভ হয়,
-      # পরের সব বিল্ডে একই key ব্যবহার হয় (তাই APK আপডেট হিসেবে ইনস্টল হবে)
       - name: Ensure release.keystore exists
         run: |
           if [ ! -f release.keystore ]; then
